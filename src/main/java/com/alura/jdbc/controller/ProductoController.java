@@ -10,7 +10,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.alura.jdbc.CreaConexion;
+
+import com.alura.jdbc.factory.ConnectionFactory;
 
 public class ProductoController {
 
@@ -18,13 +19,22 @@ public class ProductoController {
 		// TODO
 	}
 
-	public void eliminar(Integer id) {
-		// TODO
+	public int eliminar(Integer id) throws SQLException {
+		
+		Connection con = new ConnectionFactory().recuperaConexion();
+		
+		Statement statement = con.createStatement();
+		
+		statement.execute("DELETE FROM PRODUCTO WHERE ID = " + id);
+		
+		return statement.getUpdateCount();
+		
+		
 	}
 
 	public List<Map<String, String>> listar() throws SQLException {
 		
-		Connection con = new CreaConexion().recuperaConexion();
+		Connection con = new ConnectionFactory().recuperaConexion();
 		
 		Statement statement = con.createStatement();
 		
@@ -55,8 +65,25 @@ public class ProductoController {
 		return resultado;
 	}
 
-    public void guardar(Object producto) {
-		// TODO
+    public void guardar(Map<String, String> producto) throws SQLException {
+    	
+    	Connection con = new ConnectionFactory().recuperaConexion();
+		
+		Statement statement = con.createStatement();
+		
+		statement.execute("INSERT INTO PRODUCTO(nombre, descripcion, cantidad)"
+			    + " VALUES ('" + producto.get("NOMBRE") + "','"
+			    + producto.get("DESCRIPCION") + "'," 
+			    + producto.get("CANTIDAD") + ")",
+			    Statement.RETURN_GENERATED_KEYS);
+		
+		ResultSet resulSet = statement.getGeneratedKeys();
+		
+		while (resulSet.next()) {
+			System.out.println(String.format("Fue insertado el producto de ID %d", resulSet.getInt(1)));
+			resulSet.getInt(1);
+		}
+		
 	}
 
 }
