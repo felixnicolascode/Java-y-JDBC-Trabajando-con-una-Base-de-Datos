@@ -105,6 +105,7 @@ public class ProductoController {
 		Integer cantidad = Integer.valueOf(producto.get("CANTIDAD"));
 		Integer maximoCantidad = 50;
 		
+		try {
 		do {	
 			int cantidadParaGuardar = Math.min(cantidad, maximoCantidad);
 			
@@ -114,7 +115,17 @@ public class ProductoController {
 			
 		} while (cantidad > 0);
 		
+		con.commit();
 		
+		System.out.println("COMMIT");
+		
+		} catch (Exception e) {
+			con.rollback();
+			System.out.println("ROLLBACK");
+		}
+		
+		
+		statement.close();
 		
 		con.close();
 
@@ -123,6 +134,9 @@ public class ProductoController {
 	private void ejecutaRegristro(PreparedStatement statement, String nombre, String descripcion, Integer cantidad)
 			throws SQLException {
 			
+		if(cantidad < 50) {
+			throw new RuntimeException("Ocurrio un error");
+		}
 		
 		statement.setString(1, nombre);
 		statement.setString(2, descripcion);
