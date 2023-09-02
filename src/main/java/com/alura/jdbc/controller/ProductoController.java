@@ -16,30 +16,27 @@ import com.alura.jdbc.factory.ConnectionFactory;
 public class ProductoController {
 
 	public int modificar(String nombre, String descripcion, Integer cantidad, Integer id) throws SQLException {
-		
-		ConnectionFactory factory = new ConnectionFactory();
-		
-		Connection con = factory.recuperaConexion();
-		
-		PreparedStatement statement = con.prepareStatement("UPDATE PRODUCTO SET " 
-		+ " NOMBRE = ?" 
-				+ ", DESCRIPCION = ?"
-				+ ", CANTIDAD = ?"
-				+ " WHERE ID = ?");
-		
-		statement.setString(1, nombre);
-		statement.setString(2, descripcion);
-		statement.setInt(3, cantidad);
-		statement.setInt(4, id);
-		
-		statement.execute();
-		
-		int updateCount = statement.getUpdateCount();
-		
-		con.close();
-		
-		return updateCount;
-		
+	    ConnectionFactory factory = new ConnectionFactory();
+	    Connection con = factory.recuperaConexion();
+
+	    PreparedStatement statement = con
+	            .prepareStatement("UPDATE PRODUCTO SET "
+	                    + " NOMBRE = ?, "
+	                    + " DESCRIPCION = ?,"
+	                    + " CANTIDAD = ?"
+	                    + " WHERE ID = ?");
+
+	    statement.setString(1, nombre);
+	    statement.setString(2, descripcion);
+	    statement.setInt(3, cantidad);
+	    statement.setInt(4, id);
+	    statement.execute();
+
+	    int updateCount = statement.getUpdateCount();
+
+	    con.close();
+
+	    return updateCount;
 	}
 
 	public int eliminar(Integer id) throws SQLException {
@@ -97,13 +94,39 @@ public class ProductoController {
 
 		Connection con = new ConnectionFactory().recuperaConexion();
 
+		con.setAutoCommit(false);
+		
 		PreparedStatement statement = con.prepareStatement(
 				"INSERT INTO PRODUCTO (nombre, descripcion, cantidad)" + " VALUES (?, ?, ?)",
 				Statement.RETURN_GENERATED_KEYS);
 
-		statement.setString(1, producto.get("NOMBRE"));
-		statement.setString(2, producto.get("DESCRIPCION"));
-		statement.setInt(3, Integer.valueOf(producto.get("CANTIDAD")));
+		String nombre = producto.get("NOMBRE");
+		String descripcion = producto.get("DESCRIPCION");
+		Integer cantidad = Integer.valueOf(producto.get("CANTIDAD"));
+		Integer maximoCantidad = 50;
+		
+		do {	
+			int cantidadParaGuardar = Math.min(cantidad, maximoCantidad);
+			
+			ejecutaRegristro(statement, nombre, descripcion, cantidadParaGuardar);
+			
+			cantidad -= maximoCantidad;
+			
+		} while (cantidad > 0);
+		
+		
+		
+		con.close();
+
+	}
+
+	private void ejecutaRegristro(PreparedStatement statement, String nombre, String descripcion, Integer cantidad)
+			throws SQLException {
+			
+		
+		statement.setString(1, nombre);
+		statement.setString(2, descripcion);
+		statement.setInt(3, cantidad);
 
 		statement.execute();
 
@@ -113,7 +136,6 @@ public class ProductoController {
 			System.out.println(String.format("Fue insertado el producto de ID %d", resulSet.getInt(1)));
 			resulSet.getInt(1);
 		}
-
 	}
 
 }
