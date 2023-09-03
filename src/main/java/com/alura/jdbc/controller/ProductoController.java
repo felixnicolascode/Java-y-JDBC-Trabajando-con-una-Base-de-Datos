@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.alura.jdbc.factory.ConnectionFactory;
+import com.alura.jdbc.modelo.Producto;
 
 public class ProductoController {
 
@@ -68,44 +69,42 @@ public class ProductoController {
 		ConnectionFactory factory = new ConnectionFactory();
 
 		final Connection con = new ConnectionFactory().recuperaConexion();
-		
-		try (con){
-			final PreparedStatement statement = con.prepareStatement("SELECT ID, NOMBRE, DESCRIPCION, CANTIDAD FROM PRODUCTO");
-		
-		try (statement){
-			statement.execute();
-			
-			ResultSet resultSet = statement.getResultSet();	
-			
-			List<Map<String, String>> resultado = new ArrayList<>();
 
-			while (resultSet.next()) {
+		try (con) {
+			final PreparedStatement statement = con
+					.prepareStatement("SELECT ID, NOMBRE, DESCRIPCION, CANTIDAD FROM PRODUCTO");
 
-				Map<String, String> fila = new HashMap<>();
-				fila.put("ID", String.valueOf(resultSet.getInt("ID")));
-				fila.put("NOMBRE", resultSet.getString("NOMBRE"));
-				fila.put("DESCRIPCION", resultSet.getString("DESCRIPCION"));
-				fila.put("CANTIDAD", String.valueOf(resultSet.getInt("CANTIDAD")));
+			try (statement) {
+				statement.execute();
 
-				resultado.add(fila);
-				
+				ResultSet resultSet = statement.getResultSet();
+
+				List<Map<String, String>> resultado = new ArrayList<>();
+
+				while (resultSet.next()) {
+
+					Map<String, String> fila = new HashMap<>();
+					fila.put("ID", String.valueOf(resultSet.getInt("ID")));
+					fila.put("NOMBRE", resultSet.getString("NOMBRE"));
+					fila.put("DESCRIPCION", resultSet.getString("DESCRIPCION"));
+					fila.put("CANTIDAD", String.valueOf(resultSet.getInt("CANTIDAD")));
+
+					resultado.add(fila);
+
 				}
-			
-			return resultado;
-			
+
+				return resultado;
+
 			}
-		
+
 		}
 	}
-	
-	
 
-	public void guardar(Map<String, String> producto) throws SQLException {
+	public void guardar(Producto producto) throws SQLException {
 
-		String nombre = producto.get("NOMBRE");
-		String descripcion = producto.get("DESCRIPCION");
-		Integer cantidad = Integer.valueOf(producto.get("CANTIDAD"));
-		Integer maximoCantidad = 50;
+		var nombre = producto.getNombre();
+		var descripcion = producto.getDescripcion();
+		var cantidad = producto.getCantidad();
 
 		ConnectionFactory factory = new ConnectionFactory();
 		final Connection con = new ConnectionFactory().recuperaConexion();
@@ -117,39 +116,28 @@ public class ProductoController {
 			final PreparedStatement statement = con.prepareStatement(
 					"INSERT INTO PRODUCTO (nombre, descripcion, cantidad)" + " VALUES (?, ?, ?)",
 					Statement.RETURN_GENERATED_KEYS);
+			
 			try (statement) {
 
-				int cantidadParaGuardar = Math.min(cantidad, maximoCantidad);
+				ejecutaRegristro(producto, statement);
 
-				ejecutaRegristro(statement, nombre, descripcion, cantidadParaGuardar);
+				con.commit();
 
-				cantidad -= maximoCantidad;
-
+			} catch (Exception e) {
+				e.printStackTrace();
+				con.rollback();
+				System.out.println("ROLLBACK");
 			}
-			while (cantidad > 0)
-				;
 
-			con.commit();
-
-			System.out.println("COMMIT");
-
-		} catch (Exception e) {
-			con.rollback();
-			System.out.println("ROLLBACK");
 		}
-
 	}
 
-	private void ejecutaRegristro(PreparedStatement statement, String nombre, String descripcion, Integer cantidad)
-			throws SQLException {
+	private void ejecutaRegristro(Producto producto, PreparedStatement statement) throws SQLException {
 
-		if (cantidad < 50) {
-			throw new RuntimeException("Ocurrio un error");
-		}
 
-		statement.setString(1, nombre);
-		statement.setString(2, descripcion);
-		statement.setInt(3, cantidad);
+		statement.setString(1, producto.getNombre());
+		statement.setString(2, producto.getDescripcion());
+		statement.setInt(3, producto.getCantidad());
 
 		statement.execute();
 
@@ -158,8 +146,9 @@ public class ProductoController {
 		try (resulSet) {
 
 			while (resulSet.next()) {
-				System.out.println(String.format("Fue insertado el producto de ID %d", resulSet.getInt(1)));
-				resulSet.getInt(1);
+				producto.setId(resulSet.getInt(1));
+				System.out.println(String.format("Fue insertado el producto de ID %s", producto));
+				
 			}
 
 		}
