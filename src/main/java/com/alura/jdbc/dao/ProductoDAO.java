@@ -5,6 +5,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import com.alura.jdbc.factory.ConnectionFactory;
 import com.alura.jdbc.modelo.Producto;
@@ -17,7 +21,7 @@ public class ProductoDAO {
 		this.con = con;
 	}
 
-	public void guardar(Producto producto) throws SQLException {
+	public void guardar(Producto producto) {
 
 		try (con) {
 
@@ -31,14 +35,10 @@ public class ProductoDAO {
 
 				ejecutaRegristro(producto, statement);
 
-				con.commit();
-
 			}
 
-		} catch (Exception e) {
-			e.printStackTrace();
-			System.out.println("ROLLBACK de las transacción");
-			con.rollback();
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
 		}
 
 	}
@@ -65,4 +65,44 @@ public class ProductoDAO {
 
 	}
 
+	public List<Producto> listar() {
+
+		List<Producto> resultado = new ArrayList<>();
+
+		ConnectionFactory factory = new ConnectionFactory();
+
+		final Connection con = new ConnectionFactory().recuperaConexion();
+
+		try (con) {
+			final PreparedStatement statement = con
+					.prepareStatement("SELECT ID, NOMBRE, DESCRIPCION, CANTIDAD FROM PRODUCTO");
+
+			try (statement) {
+				statement.execute();
+
+				final ResultSet resultSet = statement.getResultSet();
+
+				try (resultSet) {
+
+					while (resultSet.next()) {
+
+						Producto fila = new Producto(resultSet.getInt("ID"), 
+								resultSet.getString("NOMBRE"),
+								resultSet.getString("DESCRIPCION"),
+								resultSet.getInt("CANTIDAD"));
+						
+						resultado.add(fila);
+						
+					}
+
+				}
+
+			}
+
+			return resultado;
+
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
+	}
 }

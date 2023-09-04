@@ -181,30 +181,31 @@ public class ControlDeStockFrame extends JFrame {
 	}
 
 	private void modificar() {
-        if (tieneFilaElegida()) {
-            JOptionPane.showMessageDialog(this, "Por favor, elije un item");
-            return;
-        }
+		if (tieneFilaElegida()) {
+			JOptionPane.showMessageDialog(this, "Por favor, elije un item");
+			return;
+		}
 
-        Optional.ofNullable(modelo.getValueAt(tabla.getSelectedRow(), tabla.getSelectedColumn()))
-                .ifPresentOrElse(fila -> {
-                    Integer id = Integer.valueOf(modelo.getValueAt(tabla.getSelectedRow(), 0).toString());
-                    String nombre = (String) modelo.getValueAt(tabla.getSelectedRow(), 1);
-                    String descripcion = (String) modelo.getValueAt(tabla.getSelectedRow(), 2);
-                    Integer cantidad = Integer.valueOf(modelo.getValueAt(tabla.getSelectedRow(), 3).toString());
-                    
-                    int filasModificadas;
+		Optional.ofNullable(modelo.getValueAt(tabla.getSelectedRow(), tabla.getSelectedColumn()))
+				.ifPresentOrElse(fila -> {
+					Integer id = Integer.valueOf(modelo.getValueAt(tabla.getSelectedRow(), 0).toString());
+					String nombre = (String) modelo.getValueAt(tabla.getSelectedRow(), 1);
+					String descripcion = (String) modelo.getValueAt(tabla.getSelectedRow(), 2);
+					Integer cantidad = Integer.valueOf(modelo.getValueAt(tabla.getSelectedRow(), 3).toString());
 
-                    try {
-                        filasModificadas = this.productoController.modificar(nombre, descripcion, cantidad, id);
-                    } catch (SQLException e) {
-                        e.printStackTrace();
-                        throw new RuntimeException(e);
-                    }
-                    
-                    JOptionPane.showMessageDialog(this, String.format("%d item modificado con éxito!", filasModificadas));
-                }, () -> JOptionPane.showMessageDialog(this, "Por favor, elije un item"));
-    }
+					int filasModificadas;
+
+					try {
+						filasModificadas = this.productoController.modificar(nombre, descripcion, cantidad, id);
+					} catch (SQLException e) {
+						e.printStackTrace();
+						throw new RuntimeException(e);
+					}
+
+					JOptionPane.showMessageDialog(this,
+							String.format("%d item modificado con éxito!", filasModificadas));
+				}, () -> JOptionPane.showMessageDialog(this, "Por favor, elije un item"));
+	}
 
 	private void eliminar() {
 		if (tieneFilaElegida()) {
@@ -231,22 +232,12 @@ public class ControlDeStockFrame extends JFrame {
 	}
 
 	private void cargarTabla() {
-        List<Map<String, String>> productos = new ArrayList<Map<String, String>>();
 
-        try {
-            productos = this.productoController.listar();
-        } catch (SQLException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        }
+		var productos = this.productoController.listar();
 
-        productos.forEach(producto -> modelo.addRow(
-                new Object[] {
-                        producto.get("ID"),
-                        producto.get("NOMBRE"),
-                        producto.get("DESCRIPCION"),
-                        producto.get("CANTIDAD") }));
-    }
+		productos.forEach(producto -> modelo.addRow(new Object[] { producto.getId(), producto.getNombre(),
+				producto.getDescripcion(), producto.getCantidad() }));
+	}
 
 	private void guardar() {
 		if (textoNombre.getText().isBlank() || textoDescripcion.getText().isBlank()) {
@@ -264,19 +255,11 @@ public class ControlDeStockFrame extends JFrame {
 			return;
 		}
 
-	
-		var producto = new Producto(textoNombre.getText(),
-				textoDescripcion.getText(),
-				cantidadInt);
-	
+		var producto = new Producto(textoNombre.getText(), textoDescripcion.getText(), cantidadInt);
+
 		var categoria = comboCategoria.getSelectedItem();
 
-		try {
-			this.productoController.guardar(producto);
-		} catch (SQLException e) {
-
-			throw new RuntimeException(e);
-		}
+		this.productoController.guardar(producto);
 
 		JOptionPane.showMessageDialog(this, "Registrado con éxito!");
 
