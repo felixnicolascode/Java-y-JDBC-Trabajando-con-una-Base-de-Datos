@@ -1,23 +1,23 @@
 package com.alura.jdbc.modelo;
 
 public class Producto {
-	
 
 	private Integer id;
-	
+
 	private String nombre;
-	
+
 	private String descripcion;
-	
+
 	private Integer cantidad;
-	
+
+	private Integer categoriaId;
+
 	public Producto(String nombre, String descripcion, Integer cantidad) {
-		
-		
+
 		this.nombre = nombre;
 		this.descripcion = descripcion;
 		this.cantidad = cantidad;
-		
+
 	}
 
 	public Producto(int id, String nombre, String descripcion, int cantidad) {
@@ -35,31 +35,36 @@ public class Producto {
 		return descripcion;
 	}
 
-	public Integer getCantidad(){
+	public Integer getCantidad() {
 		return cantidad;
 	}
 
 	public void setId(int id) {
-		
+
 		this.id = id;
 	}
-	
+
 	public Integer getId() {
 		// TODO Auto-generated method stub
 		return this.id;
 	}
 
+	public void setCategoriaId(Integer categoriaId) {
+		this.categoriaId = categoriaId;
+		
+	}
 	
-	@Override
-	public String toString() {
-		return String.format(
-				"{id: %s, nombre: %s, descripcion %s, cantidad: %s}",
-				this.id,
-				this.nombre,
-				this.descripcion,
-				this.cantidad);		
-				
+	public int getCategoriaId() {
+		
+		return this.categoriaId;
 	}
 
+
+	@Override
+	public String toString() {
+		return String.format("{id: %s, nombre: %s, descripcion %s, cantidad: %s}", this.id, this.nombre,
+				this.descripcion, this.cantidad);
+
+	}
 
 }

@@ -28,7 +28,7 @@ public class ProductoDAO {
 			con.setAutoCommit(false);
 
 			final PreparedStatement statement = con.prepareStatement(
-					"INSERT INTO PRODUCTO (nombre, descripcion, cantidad)" + " VALUES (?, ?, ?)",
+					"INSERT INTO PRODUCTO (nombre, descripcion, cantidad, categoria_id)" + " VALUES (?, ?, ?, ?)",
 					Statement.RETURN_GENERATED_KEYS);
 
 			try (statement) {
@@ -37,10 +37,17 @@ public class ProductoDAO {
 
 			}
 
-		} catch (SQLException e) {
-			throw new RuntimeException(e);
-		}
+			con.commit();
 
+		} catch (SQLException e) {
+			try {
+				con.rollback(); // También es una buena práctica manejar las excepciones y hacer rollback si
+								// algo sale mal
+			} catch (SQLException ex) {
+				ex.printStackTrace();
+			}
+			throw new RuntimeException();
+		}
 	}
 
 	private void ejecutaRegristro(Producto producto, PreparedStatement statement) throws SQLException {
@@ -48,6 +55,7 @@ public class ProductoDAO {
 		statement.setString(1, producto.getNombre());
 		statement.setString(2, producto.getDescripcion());
 		statement.setInt(3, producto.getCantidad());
+		statement.setInt(4, producto.getCategoriaId());
 
 		statement.execute();
 
@@ -86,13 +94,11 @@ public class ProductoDAO {
 
 					while (resultSet.next()) {
 
-						Producto fila = new Producto(resultSet.getInt("ID"), 
-								resultSet.getString("NOMBRE"),
-								resultSet.getString("DESCRIPCION"),
-								resultSet.getInt("CANTIDAD"));
-						
+						Producto fila = new Producto(resultSet.getInt("ID"), resultSet.getString("NOMBRE"),
+								resultSet.getString("DESCRIPCION"), resultSet.getInt("CANTIDAD"));
+
 						resultado.add(fila);
-						
+
 					}
 
 				}
